@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Budgetsize{% endblock %}
+
+{% block content %}
+<!-- Cabeçalho -->
+<section class="mb-6">
+  <h1 class="text-3xl font-bold text-gray-900">Dashboard Financeiro</h1>
+  
+</section>
+
+<!-- Exportações -->
+<div class="flex flex-col sm:flex-row justify-end mb-8 gap-3">
+  <a href="{% url 'exportar_excel' %}?mes={{ request.GET.mes|default:mes_atual }}&ano={{ request.GET.ano|default:ano_atual }}"
+     class="inline-flex items-center justify-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-md shadow-sm">
+    📊 Exportar Excel
+  </a>
+  <a href="{% url 'exportar_pdf' %}?mes={{ request.GET.mes|default:mes_atual }}&ano={{ request.GET.ano|default:ano_atual }}"
+     class="inline-flex items-center justify-center px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium rounded-md shadow-sm">
+    🧾 Exportar PDF
+  </a>
+</div>
+
+<!-- Filtro Mês/Ano -->
+<form method="get" class=" flex flex-col sm:flex-row sm:justify-end gap-4 mb-6">
+  <div class="w-full sm:w-auto">
+    <label for="mes" class="bg-white dark:bg-gray-800 dark:text-white text-sm font-medium text-gray-700">Mês</label>
+    <select id="mes" name="mes" class="bg-white dark:bg-gray-800 dark:text-white w-full md:w-32 px-3 py-2 border rounded-md shadow-sm focus:ring focus:border-blue-300">
+      {% for numero, nome in meses %}
+        <option value="{{ numero }}" {% if numero == mes_atual %}selected{% endif %}>{{ nome }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="w-full sm:w-auto">
+    <label for="ano" class="bg-white dark:bg-gray-800 dark:text-white text-sm font-medium text-gray-700">Ano</label>
+    <select id="ano" name="ano" class="bg-white dark:bg-gray-800 dark:text-white w-full md:w-32 px-3 py-2 border rounded-md shadow-sm focus:ring focus:border-blue-300">
+      {% for a in anos %}
+        <option value="{{ a }}" {% if a == ano_atual %}selected{% endif %}>{{ a }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="self-end">
+    <button type="submit" class="w-full sm:w-auto px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md shadow-sm">
+      🔍 Filtrar
+    </button>
+  </div>
+</form>
+
+<!-- Indicadores Financeiros -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full mb-10">
+    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-100 dark:border-gray-700">
+    <p class="bg-white dark:bg-gray-800 dark:text-white text-sm font-medium text-gray-700">Receitas</p>
+    <p class="text-2xl font-semibold text-green-600">R$ {{ total_receitas|floatformat:2 }}</p>
+  </div>
+  <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-100 dark:border-gray-700">
+    <p class="bg-white dark:bg-gray-800 dark:text-white text-sm font-medium text-gray-700">Despesas</p>
+    <p class="text-2xl font-semibold text-red-600">R$ {{ total_despesas|floatformat:2 }}</p>
+  </div>
+  <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-100 dark:border-gray-700">
+    <p class="bg-white dark:bg-gray-800 dark:text-white text-sm font-medium text-gray-700">Saldo Atual</p>
+    <p class="text-2xl font-semibold {% if saldo >= 0 %}text-green-600{% else %}text-red-600{% endif %}">R$ {{ saldo|floatformat:2 }}</p>
+  </div>
+</div>
+
+<!-- Gráficos -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+  <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-100 dark:border-gray-700">
+    <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Gastos por Categoria</h3>
+    <canvas id="graficoGastos" height="120"></canvas>
+  </div>
+  <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-100 dark:border-gray-700">
+    <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Receitas por Categoria</h3>
+    <canvas id="graficoReceitas" height="120"></canvas>
+  </div>
+</div>
+
+
+<!-- Tabela de Transações -->
+<div class="bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-100 dark:border-gray-700">
+  <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+    <h3 class="text-lg font-medium text-gray-800 dark:text-white">Transações Recentes</h3>
+  </div>
+  <div class="overflow-x-auto">
+    <table class="min-w-full text-sm text-gray-700 dark:text-gray-200">
+      <thead class="bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-white">
+        <tr>
+          <th class="px-6 py-3 text-left font-semibold dark:text-white">Data</th>
+          <th class="px-6 py-3 text-left font-semibold dark:text-white">Tipo</th>
+          <th class="px-6 py-3 text-left font-semibold dark:text-white">Categoria</th>
+          <th class="px-6 py-3 text-left font-semibold dark:text-white">Valor</th>
+        </tr>
+      </thead>
+      <tbody class="bg-white dark:bg-gray-800">
+        {% for transacao in ultimas_transacoes %}
+        <tr class="border-t border-gray-100 dark:border-gray-700">
+          <td class="px-6 py-4 whitespace-nowrap text-gray-700 dark:text-white">
+            {{ transacao.data|date:"d/m/Y" }}
+          </td>
+          <td class="px-6 py-4">
+            <span class="px-2 inline-flex text-xs font-semibold rounded-full 
+              {% if transacao.tipo == 'receita' %}
+                bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300
+              {% else %}
+                bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300
+              {% endif %}">
+              {{ transacao.tipo|title }}
+            </span>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-gray-700 dark:text-white">
+            {{ transacao.categoria.nome }}
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap font-semibold 
+            {% if transacao.tipo == 'receita' %}
+              text-green-600 dark:text-green-400
+            {% else %}
+              text-red-600 dark:text-red-400
+            {% endif %}">
+            R$ {{ transacao.valor|floatformat:2 }}
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
+            Nenhuma transação encontrada.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const ctxGastos = document.getElementById('graficoGastos').getContext('2d');
+new Chart(ctxGastos, {
+  type: 'bar',
+  data: {
+    labels: {{ categorias_despesas_json|safe }},
+    datasets: [{
+      label: 'Gastos (R$)',
+      data: {{ valores_despesas_json|safe }},
+      backgroundColor: '#f87171',
+      borderRadius: 6,
+      barPercentage: 0.6
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: {
+        labels: {
+          color: '#ffffff',
+          font: {
+            weight: 'bold'
+          }
+        }
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          callback: value => 'R$ ' + value,
+          color: '#ffffff',
+          font: {
+            weight: 'bold'
+          }
+        }
+      },
+      x: {
+        ticks: {
+          color: '#ffffff',
+          font: {
+            weight: 'bold'
+          }
+        }
+      }
+    }
+  }
+});
+
+
+  const ctxReceitas = document.getElementById('graficoReceitas').getContext('2d');
+new Chart(ctxReceitas, {
+  type: 'bar',
+  data: {
+    labels: {{ categorias_receitas_json|safe }},
+    datasets: [{
+      label: 'Receitas (R$)',
+      data: {{ valores_receitas_json|safe }},
+      backgroundColor: '#34d399',
+      borderRadius: 6,
+      barPercentage: 0.6
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: {
+        labels: {
+          color: '#ffffff',
+          font: {
+            weight: 'bold'
+          }
+        }
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          callback: value => 'R$ ' + value,
+          color: '#ffffff',
+          font: {
+            weight: 'bold'
+          }
+        }
+      },
+      x: {
+        ticks: {
+          color: '#ffffff',
+          font: {
+            weight: 'bold'
+          }
+        }
+      }
+    }
+  }
+});
+
+</script>
+
+{% endblock %}

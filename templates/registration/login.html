@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Login - Budgetsize{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-gray-900">
+  <div class="max-w-md w-full space-y-8">
+    <div class="text-center">
+      <h2 class="text-3xl font-extrabold text-gray-900 dark:text-white">Entre na sua conta</h2>
+      <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+        Ou
+        <a href="{% url 'register' %}" class="font-medium text-blue-600 hover:text-blue-500 dark:hover:text-blue-400">
+          crie uma nova conta
+        </a>
+      </p>
+    </div>
+
+    <form method="POST" class="mt-8 space-y-6 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
+      {% csrf_token %}
+
+      <div class="space-y-4">
+        <div>
+          <label for="id_username" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Usuário</label>
+          <input id="id_username" name="username" type="text" required
+            class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            placeholder="Usuário">
+        </div>
+
+        <div>
+          <label for="id_password" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Senha</label>
+          <input id="id_password" name="password" type="password" required
+            class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            placeholder="Senha">
+        </div>
+      </div>
+
+      {% if form.errors %}
+      <div class="bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-700 text-red-800 dark:text-red-200 px-4 py-3 rounded-md">
+        <strong class="font-semibold">Erros:</strong>
+        <ul class="mt-2 list-disc list-inside text-sm">
+          {% for field, errors in form.errors.items %}
+            {% for error in errors %}
+              <li>{{ error }}</li>
+            {% endfor %}
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+      <div>
+        <button type="submit"
+          class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+          Entrar
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} - Budgetsize{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+  <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
+    <div class="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
+      <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">
+        {{ title }}
+      </h3>
+    </div>
+    <div class="px-4 py-5 sm:px-6">
+      <form method="post" class="space-y-6">
+        {% csrf_token %}
+
+        {% for field in form %}
+          {% if field.name != "categoria" %}
+            <div>
+              <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                {{ field.label }}
+              </label>
+              <div class="mt-1">
+                {{ field }}
+                {% if field.errors %}
+                  <div class="mt-2 text-sm text-red-600 dark:text-red-400">
+                    {{ field.errors }}
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+          {% endif %}
+        {% endfor %}
+
+        <!-- Campo de categoria manual com filtro JS -->
+        <div>
+          <label for="categoria" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Categoria</label>
+          <div class="mt-1">
+            <select name="categoria" id="categoria" required
+              class="w-full border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
+              <option value="">---------</option>
+              {% for categoria in categorias %}
+                <option value="{{ categoria.id }}" data-tipo="{{ categoria.tipo }}"
+                  {% if form.data.categoria|stringformat:"s" == categoria.id|stringformat:"s" %}selected{% endif %}>
+                  {{ categoria.nome }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <div class="flex justify-end space-x-3">
+          <a href="{% url 'transacao_list' %}"
+            class="inline-flex justify-center py-2 px-4 border border-gray-300 dark:border-gray-600 shadow-sm text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+            Cancelar
+          </a>
+          <button type="submit"
+            class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+            Salvar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Script para filtrar categorias com base no tipo -->
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const tipoSelect = document.getElementById('id_tipo');
+    const categoriaSelect = document.getElementById('categoria');
+
+    function filtrarCategorias() {
+      const tipoSelecionado = tipoSelect.value;
+
+      for (const option of categoriaSelect.options) {
+        const tipoCategoria = option.getAttribute('data-tipo');
+        if (!tipoCategoria || tipoCategoria === tipoSelecionado) {
+          option.style.display = '';
+        } else {
+          option.style.display = 'none';
+        }
+      }
+
+      categoriaSelect.selectedIndex = 0;
+    }
+
+    if (tipoSelect) {
+      tipoSelect.addEventListener('change', filtrarCategorias);
+      filtrarCategorias();
+    }
+  });
+</script>
+{% endblock %}

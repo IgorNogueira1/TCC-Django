@@ -1,0 +1,4 @@
+--nobeep
+--clear
+--onpass "echo 'Tests passed!'"
+--onfail "echo 'Tests failed!'" 

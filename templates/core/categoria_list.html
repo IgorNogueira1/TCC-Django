@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}Categorias - Budgetsize{% endblock %}
+
+{% block content %}
+<div class="bg-white dark:bg-gray-800 shadow rounded-lg">
+    <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
+        <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100">
+            Categorias
+        </h3>
+        <a href="{% url 'categoria_create' %}"
+           class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+            Nova Categoria
+        </a>
+    </div>
+
+    <div class="border-t border-gray-200 dark:border-gray-700">
+        <div class="overflow-x-auto">
+            <table id="tabelaCategorias" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <thead class="bg-gray-50 dark:bg-gray-700">
+                    <tr>
+                        <th data-col="0" scope="col"
+                            class="sortable px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:text-blue-600 dark:hover:text-blue-300">
+                            Nome ⬍
+                        </th>
+                        <th data-col="1" scope="col"
+                            class="sortable px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:text-blue-600 dark:hover:text-blue-300">
+                            Tipo ⬍
+                        </th>
+                        <th data-col="2" scope="col"
+                            class="sortable px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:text-blue-600 dark:hover:text-blue-300">
+                            Cor ⬍
+                        </th>
+                        <th scope="col"
+                            class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                            Ações
+                        </th>
+                    </tr>
+                </thead>
+
+                <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                    {% for categoria in categorias %}
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                            {{ categoria.nome }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
+                                {% if categoria.tipo == 'receita' %}
+                                    bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300
+                                {% else %}
+                                    bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300
+                                {% endif %}">
+                                {{ categoria.tipo|title }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="w-6 h-6 rounded-full border border-gray-300 dark:border-gray-600" style="background-color: {{ categoria.cor }}"></div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <a href="{% url 'categoria_edit' categoria.pk %}"
+                               class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 mr-4">Editar</a>
+                            <a href="{% url 'categoria_delete' categoria.pk %}"
+                               class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">Excluir</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
+                            Nenhuma categoria encontrada.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Ordenação por coluna -->
+<script>
+    document.querySelectorAll('.sortable').forEach(header => {
+        header.addEventListener('click', () => {
+            const table = document.getElementById('tabelaCategorias');
+            const colIndex = parseInt(header.dataset.col);
+            const tbody = table.querySelector('tbody');
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            const asc = !header.classList.contains('asc');
+
+            rows.sort((a, b) => {
+                const aText = a.children[colIndex].innerText.trim().toLowerCase();
+                const bText = b.children[colIndex].innerText.trim().toLowerCase();
+                return asc ? aText.localeCompare(bText) : bText.localeCompare(aText);
+            });
+
+            rows.forEach(row => tbody.appendChild(row));
+            document.querySelectorAll('.sortable').forEach(h => h.classList.remove('asc', 'desc'));
+            header.classList.add(asc ? 'asc' : 'desc');
+        });
+    });
+</script>
+{% endblock %}
