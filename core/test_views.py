@@ -99,4 +99,17 @@ class TestViews:
         client.force_login(user)
         response = client.post(reverse('categoria_delete', args=[categoria.id]))
         assert response.status_code == 302
-        assert not user.categoria_set.filter(id=categoria.id).exists() 
+        assert not user.categoria_set.filter(id=categoria.id).exists()
+
+    def test_profile_update_view(self, client, user):
+        client.force_login(user)
+        response = client.post(reverse('profile_edit'), {
+            'username': 'novo',
+            'first_name': 'Test',
+            'last_name': 'User',
+            'email': 'novo@example.com',
+        })
+        assert response.status_code == 302
+        user.refresh_from_db()
+        assert user.username == 'novo'
+        assert user.email == 'novo@example.com'

@@ -10,7 +10,12 @@ from reportlab.pdfgen import canvas
 from django.utils import timezone
 from datetime import datetime, timedelta
 from .models import Transacao, Categoria
-from .forms import UserRegistrationForm, TransacaoForm, CategoriaForm
+from .forms import (
+    UserRegistrationForm,
+    TransacaoForm,
+    CategoriaForm,
+    UserUpdateForm,
+)
 from django.utils.timezone import now
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
@@ -41,6 +46,19 @@ def register(request):
 def logout_view(request):
     logout(request)
     return redirect('index')  # ou a URL que quiser redirecionar
+
+
+@login_required
+def profile_edit(request):
+    if request.method == 'POST':
+        form = UserUpdateForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Perfil atualizado com sucesso!')
+            return redirect('dashboard')
+    else:
+        form = UserUpdateForm(instance=request.user)
+    return render(request, 'core/profile_form.html', {'form': form, 'title': 'Editar Perfil'})
 
 
 

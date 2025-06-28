@@ -6,6 +6,7 @@ urlpatterns = [
     path('', views.index, name='index'),
     path('dashboard/', views.dashboard, name='dashboard'),
     path('register/', views.register, name='register'),
+    path('perfil/', views.profile_edit, name='profile_edit'),
     path('logout/', views.logout_view, name='logout'),
     
     # URLs para Transações
