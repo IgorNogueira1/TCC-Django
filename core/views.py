@@ -9,8 +9,15 @@ from django.contrib.auth import logout
 from reportlab.pdfgen import canvas
 from django.utils import timezone
 from datetime import datetime, timedelta
-from .models import Transacao, Categoria
-from .forms import UserRegistrationForm, TransacaoForm, CategoriaForm
+from .models import Transacao, Categoria, Carteira, Investimento
+from .forms import (
+    UserRegistrationForm,
+    TransacaoForm,
+    CategoriaForm,
+    UserUpdateForm,
+    CarteiraForm,
+    InvestimentoForm,
+)
 from django.utils.timezone import now
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
@@ -41,6 +48,19 @@ def register(request):
 def logout_view(request):
     logout(request)
     return redirect('index')  # ou a URL que quiser redirecionar
+
+
+@login_required
+def profile_edit(request):
+    if request.method == 'POST':
+        form = UserUpdateForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Perfil atualizado com sucesso!')
+            return redirect('dashboard')
+    else:
+        form = UserUpdateForm(instance=request.user)
+    return render(request, 'core/profile_form.html', {'form': form, 'title': 'Editar Perfil'})
 
 
 
@@ -229,6 +249,85 @@ def categoria_delete(request, pk):
         messages.success(request, 'Categoria excluída com sucesso!')
         return redirect('categoria_list')
     return render(request, 'core/categoria_confirm_delete.html', {'categoria': categoria})
+
+
+@login_required
+def carteira_list(request):
+    carteiras = Carteira.objects.filter(usuario=request.user)
+    return render(request, 'core/carteira_list.html', {'carteiras': carteiras})
+
+
+@login_required
+def carteira_create(request):
+    if request.method == 'POST':
+        form = CarteiraForm(request.POST)
+        if form.is_valid():
+            carteira = form.save(commit=False)
+            carteira.usuario = request.user
+            carteira.save()
+            messages.success(request, 'Carteira criada com sucesso!')
+            return redirect('carteira_list')
+    else:
+        form = CarteiraForm()
+    return render(request, 'core/carteira_form.html', {'form': form, 'title': 'Nova Carteira'})
+
+
+@login_required
+def carteira_edit(request, pk):
+    carteira = get_object_or_404(Carteira, pk=pk, usuario=request.user)
+    if request.method == 'POST':
+        form = CarteiraForm(request.POST, instance=carteira)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Carteira atualizada com sucesso!')
+            return redirect('carteira_list')
+    else:
+        form = CarteiraForm(instance=carteira)
+    return render(request, 'core/carteira_form.html', {'form': form, 'title': 'Editar Carteira'})
+
+
+@login_required
+def carteira_delete(request, pk):
+    carteira = get_object_or_404(Carteira, pk=pk, usuario=request.user)
+    if request.method == 'POST':
+        carteira.delete()
+        messages.success(request, 'Carteira excluída com sucesso!')
+        return redirect('carteira_list')
+    return render(request, 'core/carteira_confirm_delete.html', {'carteira': carteira})
+
+
+@login_required
+def carteira_detail(request, pk):
+    carteira = get_object_or_404(Carteira, pk=pk, usuario=request.user)
+    investimentos = carteira.investimentos.all()
+    return render(request, 'core/carteira_detail.html', {'carteira': carteira, 'investimentos': investimentos})
+
+
+@login_required
+def investimento_add(request, carteira_pk):
+    carteira = get_object_or_404(Carteira, pk=carteira_pk, usuario=request.user)
+    if request.method == 'POST':
+        form = InvestimentoForm(request.POST)
+        if form.is_valid():
+            investimento = form.save(commit=False)
+            investimento.carteira = carteira
+            investimento.save()
+            messages.success(request, 'Investimento adicionado com sucesso!')
+            return redirect('carteira_detail', pk=carteira.pk)
+    else:
+        form = InvestimentoForm()
+    return render(request, 'core/investimento_form.html', {'form': form, 'carteira': carteira, 'title': 'Novo Investimento'})
+
+
+@login_required
+def investimento_delete(request, carteira_pk, pk):
+    carteira = get_object_or_404(Carteira, pk=carteira_pk, usuario=request.user)
+    investimento = get_object_or_404(Investimento, pk=pk, carteira=carteira)
+    if request.method == 'POST':
+        investimento.delete()
+        messages.success(request, 'Investimento removido com sucesso!')
+        return redirect('carteira_detail', pk=carteira.pk)
+    return render(request, 'core/investimento_confirm_delete.html', {'investimento': investimento, 'carteira': carteira})
 
 
 

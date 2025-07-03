@@ -1,7 +1,7 @@
 import pytest
 from django.urls import reverse
 from decimal import Decimal
-from core.models import Transacao
+from core.models import Transacao, Carteira, Investimento
 
 @pytest.mark.django_db
 class TestViews:
@@ -99,4 +99,36 @@ class TestViews:
         client.force_login(user)
         response = client.post(reverse('categoria_delete', args=[categoria.id]))
         assert response.status_code == 302
-        assert not user.categoria_set.filter(id=categoria.id).exists() 
+        assert not user.categoria_set.filter(id=categoria.id).exists()
+
+    def test_profile_update_view(self, client, user):
+        client.force_login(user)
+        response = client.post(reverse('profile_edit'), {
+            'username': 'novo',
+            'first_name': 'Test',
+            'last_name': 'User',
+            'email': 'novo@example.com',
+        })
+        assert response.status_code == 302
+        user.refresh_from_db()
+        assert user.username == 'novo'
+        assert user.email == 'novo@example.com'
+
+    def test_carteira_create_and_add_investimento(self, client, user):
+        client.force_login(user)
+        # criar carteira
+        response = client.post(reverse('carteira_create'), {
+            'nome': 'Principal'
+        })
+        assert response.status_code == 302
+        carteira = Carteira.objects.get(usuario=user, nome='Principal')
+
+        # adicionar investimento
+        response = client.post(reverse('investimento_add', args=[carteira.id]), {
+            'ticker': 'PETR4',
+            'tipo': 'acao',
+            'quantidade': '10',
+            'preco_medio': '20.00',
+        })
+        assert response.status_code == 302
+        assert carteira.investimentos.filter(ticker='PETR4').exists()

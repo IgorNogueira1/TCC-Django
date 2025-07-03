@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from .models import Transacao, Categoria
+from .models import Transacao, Categoria, Carteira, Investimento
 
 class UserRegistrationForm(UserCreationForm):
     email = forms.EmailField(required=True)
@@ -63,4 +63,51 @@ class TransacaoForm(forms.ModelForm):
         user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
         if user:
-            self.fields['categoria'].queryset = Categoria.objects.filter(usuario=user) 
+            self.fields['categoria'].queryset = Categoria.objects.filter(usuario=user)
+
+
+class CarteiraForm(forms.ModelForm):
+    class Meta:
+        model = Carteira
+        fields = ['nome']
+        widgets = {
+            'nome': forms.TextInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+            })
+        }
+
+
+class InvestimentoForm(forms.ModelForm):
+    class Meta:
+        model = Investimento
+        fields = ['ticker', 'tipo', 'quantidade', 'preco_medio']
+        widgets = {
+            'ticker': forms.TextInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+            }),
+            'tipo': forms.Select(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+            }),
+            'quantidade': forms.NumberInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500',
+                'step': '0.01'
+            }),
+            'preco_medio': forms.NumberInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500',
+                'step': '0.01'
+            }),
+        }
+
+
+class UserUpdateForm(forms.ModelForm):
+    email = forms.EmailField(required=True)
+
+    class Meta:
+        model = User
+        fields = ['username', 'first_name', 'last_name', 'email']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs['class'] = 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+

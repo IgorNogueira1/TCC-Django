@@ -1,6 +1,6 @@
 import pytest
 from decimal import Decimal
-from core.models import Categoria, Transacao
+from core.models import Categoria, Transacao, Carteira, Investimento
 from django.db import models
 
 @pytest.mark.django_db
@@ -79,4 +79,18 @@ class TestModels:
 
         saldo = receitas - despesas
 
-        assert saldo == Decimal('100.00') 
+        assert saldo == Decimal('100.00')
+
+    def test_criar_carteira_e_investimento(self, user):
+        carteira = Carteira.objects.create(usuario=user, nome='Principal')
+        investimento = Investimento.objects.create(
+            carteira=carteira,
+            ticker='PETR4',
+            tipo='acao',
+            quantidade=Decimal('10'),
+            preco_medio=Decimal('20.00'),
+        )
+
+        assert carteira.usuario == user
+        assert investimento.carteira == carteira
+        assert investimento.ticker == 'PETR4'

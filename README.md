@@ -46,5 +46,6 @@ python manage.py runserver
 - Dashboard com indicadores financeiros
 - Gestão de receitas e despesas
 - Categorização de transações
+- Cadastro de carteiras de investimento (ações e FIIs)
 - Relatórios e gráficos
 - Interface responsiva 
