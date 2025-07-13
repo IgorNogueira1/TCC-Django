@@ -49,6 +49,11 @@ def logout_view(request):
 
 
 @login_required
+def profile_detail(request):
+    return render(request, 'core/profile_detail.html', {'user_obj': request.user, 'title': 'Perfil'})
+
+
+@login_required
 def profile_edit(request):
     if request.method == 'POST':
         form = UserUpdateForm(request.POST, instance=request.user)

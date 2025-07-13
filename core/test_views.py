@@ -113,3 +113,11 @@ class TestViews:
         user.refresh_from_db()
         assert user.username == 'novo'
         assert user.email == 'novo@example.com'
+
+    def test_profile_detail_view(self, client, user):
+        client.force_login(user)
+        response = client.get(reverse('profile_detail'))
+        assert response.status_code == 200
+        content = response.content.decode()
+        assert user.username in content
+        assert user.email in content

@@ -33,7 +33,7 @@
                 </div>
                 <div class="flex items-center gap-4">
                     <span class="text-gray-700 dark:text-gray-300">{{ user.username }}</span>
-                    <a href="{% url 'profile_edit' %}" class="text-sm font-medium text-gray-500 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white">Perfil</a>
+                    <a href="{% url 'profile_detail' %}" class="text-sm font-medium text-gray-500 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white">Perfil</a>
                     <form method="post" action="{% url 'logout' %}">
                             {% csrf_token %}
                             <button type="submit" class="text-sm text-gray-500 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white bg-transparent border-none p-0 m-0 cursor-pointer">
