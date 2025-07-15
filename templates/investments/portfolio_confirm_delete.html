@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block title %}Excluir Ativo{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-bold mb-4">Excluir {{ item.asset.symbol }}?</h1>
+<form method="post">
+    {% csrf_token %}
+    <button type="submit" class="bg-red-500 text-white px-4 py-2 rounded">Excluir</button>
+    <a href="{% url 'portfolio_list' %}" class="ml-2">Cancelar</a>
+</form>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}Carteira{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-bold mb-4">Minha Carteira</h1>
+<a href="{% url 'portfolio_add' %}" class="bg-blue-500 text-white px-4 py-2 rounded">Adicionar Ativo</a>
+<table class="min-w-full mt-4">
+    <thead>
+        <tr>
+            <th class="px-4 py-2">Ativo</th>
+            <th class="px-4 py-2">Quantidade</th>
+            <th class="px-4 py-2"></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in items %}
+        <tr class="border-b">
+            <td class="px-4 py-2">{{ item.asset.symbol }} - {{ item.asset.name }}</td>
+            <td class="px-4 py-2">{{ item.quantity }}</td>
+            <td class="px-4 py-2">
+                <form method="post" action="{% url 'portfolio_delete' item.pk %}">
+                    {% csrf_token %}
+                    <button type="submit" class="text-red-500">Excluir</button>
+                </form>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="3" class="px-4 py-2">Nenhum ativo na carteira.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
